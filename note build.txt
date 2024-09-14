@@ -1,0 +1,20 @@
+docker build -t img4lab .
+
+docker images
+
+mkdir Seclabs
+
+cd ./Seclabs
+
+mkdir bof // bufer overflow
+
+C:\Users\Dell\Documents\GitHub\myprojects\Seclabs
+
+
+docker run -it --privileged -v C:/Users/Dell/Documents/GitHub/myprojects/Seclabs:/home/seed/seclabs img4lab
+
+https://hailstormsec.com/bof1/
+
+docker run -it my-debian-image
+
+https://linuxteamvietnam.us/format-string/

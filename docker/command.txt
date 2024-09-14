@@ -1,0 +1,1 @@
+docker run -it --privileged -v C:/Users/Dell/Documents/GitHub/myprojects/docker/canary:/home/seed/canary kali-gdb-env

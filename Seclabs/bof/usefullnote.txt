@@ -1,0 +1,13 @@
+sudo sysctl -w kernel.randomize_va_space=0 // cho phép hệ thống buffer
+
+gcc -g flow.c -o flow.out -fno-stack-protector -mpreferred-stack-boundary=2
+gdb flow.out -q
+
+// Main Step
+gcc -g bof1.c -o bof1.out -fno-stack-protector -mpreferred-stack-boundary=2
+
+hoặc để tắt cảnh báo:
+gcc -g bof1.c -o bof1.out -fno-stack-protector -mpreferred-stack-boundary=2 -w
+
+gdb bof1.out -q
+

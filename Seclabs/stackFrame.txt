@@ -1,0 +1,14 @@
+esb
+local variable
+ebp => must have
+return address => must have 
+agrument
+
+
+
+   0x080484aa <+0>:     push   ebp => luu return addres 
+   0x080484ab <+1>:     mov    ebp,esp => base frame cho ebp = esp 
+   0x08048481 <+3>:     sub    esp,0xc8 => local variable
+
+   0x080484a8 <+42>:    leave
+   0x080484a9 <+43>:    ret => chuyeenr den dung function 
